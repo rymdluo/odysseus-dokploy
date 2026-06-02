@@ -56,7 +56,15 @@ RUN chmod +x /app/docker/entrypoint.sh
 # "Compose" service — silently breaking managed persistence and Volume Backups.
 # Always deploy via Compose so the named volumes apply.
 
+# --- tracker-capture skill seed (wrapper-level; no upstream fork) ---
+# Bundle seed assets OUTSIDE /app so the /app/data named volume can't mask
+# them. seed-entrypoint.sh copies them into the data volume on boot (only if
+# absent), then execs Odysseus's real entrypoint (PUID/PGID chown+drop, CMD).
+COPY seed/skills/ /opt/odysseus-seed/skills/
+COPY seed-entrypoint.sh /usr/local/bin/seed-entrypoint.sh
+RUN chmod +x /usr/local/bin/seed-entrypoint.sh
+
 EXPOSE 7000
 
-ENTRYPOINT ["/app/docker/entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/seed-entrypoint.sh"]
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7000"]

@@ -47,6 +47,25 @@ services:
         condition: service_started
     restart: unless-stopped
 
+  # Read-only MCP sidecar for the "trackers" feature (see seed/trackers-read/).
+  # Mounts the SAME data volume READ-ONLY and exposes tracker_due / tracker_read /
+  # tracker_list / tracker_schedule_stats over SSE. After first boot, register it
+  # once in Settings -> MCP:  transport=sse,  url=http://trackers-read:8585/sse
+  trackers-read:
+    build:
+      context: ./seed/trackers-read
+    volumes:
+      - odysseus_data:/data:ro     # :ro — the sidecar can never corrupt app.db
+      - trackers_state:/state      # per-owner throttle state, survives restarts
+    environment:
+      - TRACKERS_DB=/data/app.db
+      - STATE_DIR=/state
+      - MCP_HOST=0.0.0.0
+      - MCP_PORT=8585
+    depends_on:
+      - odysseus
+    restart: unless-stopped
+
   chromadb:
     image: docker.io/chromadb/chroma:latest
     volumes:
@@ -92,3 +111,4 @@ volumes:
   chromadb_data:       # Vector memory store
   searxng_data:
   ntfy_cache:
+  trackers_state:      # trackers-read sidecar throttle state
