@@ -26,7 +26,7 @@ When the user wants to open, update, review, or close a tracker — anything tha
 10. Routine change → rewrite `## Result`, then set `next_check_at` ADAPTIVELY: pick an interval within [cadence_min, cadence_max] by the situation — tighten toward `cadence_min` when volatile or near a threshold, relax toward `cadence_max` when calm or dormant — and call `schedule_after(interval, window)` to get the exact `next_check_at` (it clamps to ≥30m and snaps into `window`). Do NOT compute timestamps by hand. Save. Set `next_check_at` ONLY after a successful update (on a fetch failure leave it so the next heartbeat retries).
 11. Keep the note bounded: `## Result` is a REWRITTEN synthesis, never an append log. Do not paste raw time-series into the note — high-frequency data (prices, metrics) stays in its source; carry only the reading(s) that change the picture.
 12. Only when a retained series genuinely helps the reader (e.g. a position tracked near its stop), keep a bounded `## Readings` section and downsample it ADAPTIVELY each check: keep recent readings fine-grained, roll older ones into coarser buckets, PIN any reading flagged notable (a threshold touch, a regime change), and drop ancient non-notable points. Tune granularity to the situation — finer when volatile or near a threshold, coarser when dormant. See "Reference — data retention" (manage_skills view).
-13. Threshold crossing (stop hit, invalidator confirmed, conviction flip, tracked actor unwinds, condition worsening) → ALSO create a SEPARATE note labelled "tracker-alert", `due_date`=the current time (so it pings; use a parseable form like "today at 14:05", not the literal "now"), containing four parts: What changed / Why it crosses the threshold / Severity (low|normal|high|critical, calibrated) / Recommended next step — plus a line `Tracker: <headline>`. Then write an identifier for this crossing into the tracker fence `last_alert_key` so it is not re-alerted next sweep.
+13. Threshold crossing (stop hit, invalidator confirmed, conviction flip, tracked actor unwinds, condition worsening) → ALSO create a SEPARATE note labelled "tracker-alert", `due_date`="in 1 minute" (a RELATIVE time — Odysseus computes the absolute moment from the real clock at write time, so it lands inside the reminder dispatch window and actually pings; do NOT stamp a wall-clock "today at HH:MM" or "now": during a multi-tracker sweep that timestamp goes stale and the note reminder is silently skipped), containing four parts: What changed / Why it crosses the threshold / Severity (low|normal|high|critical, calibrated) / Recommended next step — plus a line `Tracker: <headline>`. Then write an identifier for this crossing into the tracker fence `last_alert_key` so it is not re-alerted next sweep.
 14. If nothing material changed, do nothing and write no note. Silence on quiet days is correct — never emit an all-clear.
 
 ## Pitfalls
@@ -112,7 +112,7 @@ Two of three runs in; +3.1% so far, within noise on run 2. Leaning inconclusive.
 ```
 title: AAPL closed below its 200-day MA — long-thesis invalidator hit
 label: tracker-alert
-due_date: <now>
+due_date: in 1 minute
 content:
 **What changed:** AAPL closed 191.40, below the 200-day MA (≈196) named as the invalidator.
 **Why it crosses the threshold:** Scope says "exit-watch if it closes below the 200-day MA two days running" — second close today.

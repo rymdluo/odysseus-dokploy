@@ -23,9 +23,18 @@ Scheduled LLM tasks (the heartbeat) and chat both see its tools after registrati
 
 ## Data access
 
-- Open `file:/data/app.db?mode=ro` with `uri=True`, `PRAGMA busy_timeout=3000`.
-  Read-only + busy-timeout makes it safe against Odysseus's concurrent writes
-  (WAL allows a reader alongside the writer; the timeout rides out a brief lock).
+- Open `file:/data/app.db?mode=ro` with `uri=True` and a busy-timeout (the code
+  passes `timeout=5` → a 5 s busy-timeout; the SDK does not run a separate
+  `PRAGMA busy_timeout`). NOTE: Odysseus runs SQLite in its DEFAULT
+  rollback-journal (`DELETE`) mode — it never enables WAL (`core/database.py`
+  only sets `PRAGMA foreign_keys=ON`). So a `mode=ro` reader is **not** lock-free
+  alongside the writer the way WAL would allow; it blocks on the writer's lock and
+  the busy-timeout simply rides out the (normally sub-second) note write. Edges to
+  know: a write that outlasts 5 s (bulk op, `VACUUM`, slow disk) or a *hot
+  rollback journal* left by an Odysseus crash — which a `:ro` mount cannot recover
+  — makes the read fail, and the tool then returns `db_ok:false`. Treat a single
+  `db_ok:false` as possibly transient (it may be lock contention, not a down
+  store).
 - A "tracker" is a row in `notes` with `label = 'tracker'`. Parse the
   ```` ```tracker ```` JSON fence and the optional `## Readings` section out of
   `content`. Couples only to the stable `notes` table — not to Python internals —
