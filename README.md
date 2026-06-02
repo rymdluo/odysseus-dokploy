@@ -3,7 +3,7 @@
 A thin deployment wrapper for [Odysseus](https://github.com/pewdiepie-archdaemon/odysseus) that:
 
 - Clones Odysseus from GitHub at build time (pinnable to a commit SHA)
-- Pins every stateful path to a **named Docker volume** so redeploys never lose data
+- Pins every stateful path to a **named Docker volume** so redeploys never lose data (when deployed as a Compose service — see below)
 - Bundles the supporting services Odysseus needs: ChromaDB, SearXNG, ntfy
 
 Intended for [Dokploy](https://dokploy.com), but works with any host that runs Docker Compose.

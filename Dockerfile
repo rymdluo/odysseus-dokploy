@@ -1,9 +1,11 @@
 # Self-contained Dockerfile for Odysseus — clones from GitHub at build time.
 # Pin ODYSSEUS_REF to a commit SHA in production; "main" is a moving target.
 #
-# Build:   docker build --build-arg ODYSSEUS_REF=main -t odysseus:custom .
-# Persist: pair this with the companion docker-compose.yml so /app/data lands
-#          on a named volume that survives redeploys.
+# Local test build:  docker build --build-arg ODYSSEUS_REF=main -t odysseus:custom .
+# Real deploys go through the companion docker-compose.yml — NOT this Dockerfile
+# alone — so /app/data lands on a named volume that survives redeploys. Building
+# the image standalone (e.g. as a Dokploy "Application") gets anonymous volumes;
+# see the VOLUME note below.
 
 FROM python:3.12-slim
 
